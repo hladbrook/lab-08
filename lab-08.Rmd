@@ -16,11 +16,45 @@ library(tidymodels)
 ```{r, warning=FALSE, message=FALSE}
 library(openintro)
 glimpse(email)
+
+email %>% 
+  count(spam == 1)
+email %>% 
+  group_by(winner) %>%
+  count(spam == 1)
+
+email_fit <- lm(spam ~ winner, data = email)
+
+rec_spam <- recipe(
+  spam ~ winner,
+  data = email
+)
+spam_mod <- logistic_reg() %>%
+  set_engine("glm")
+
+spam_wflow <- workflow() %>%
+  add_model(spam_mod) %>%
+  add_recipe((rec_spam))
+
+spam_fit <- spam_wflow %>%
+  fit(data = email)
+
+tidy(email_fit)
+predict(spam_fit, email, type = "prob")
 ```
 
 1. What proportion of emails are spam? Calculate the proportion of spam separately for emails with and without the word “winner”.
 
+Proportion of emails that are spam: 0.0935
+With the word "winner": 0.303
+Without the word "winner": 0.0899
+
 2. Fit a logistic regression of `spam` on `winner` and write down the fitted model. Use `predict(..., type = "prob")` to find the predicted probability of spam for each group. Compare them with your previously calculated proportions.  
+
+model: y = 1.0899 + 0.2225x 
+y is predicted spam, x is winner
+Predicted spam with word winner is 0.0899
+predicted spam without word winner is 0.91
 
 3. How about fitting a logistic regression of `spam` on `winner` and `num_char`? Calculate the confusion matrix of the fitted logistic model on this new model, and compare with the confusion matrix result of the previous model, relying on `winner` only. Explain the differences on confusion matrix.
 
